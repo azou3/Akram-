@@ -1,0 +1,771 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>التطبيق الإداري لمتجر البيتزا</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cairo&display=swap');
+  body {
+    font-family: 'Cairo', sans-serif;
+    margin: 0;
+    background: url('https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=1470&q=80') no-repeat center center fixed;
+    background-size: cover;
+    color: white;
+    position: relative;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.5); /* تغطية داكنة شفافة */
+    z-index: -1;
+  }
+  header {
+    background-color: #d32f2f;
+    color: white;
+    padding: 1rem 2rem;
+    font-size: 1.5rem;
+    text-align: center;
+    font-weight: bold;
+  }
+  main {
+    max-width: 1200px;
+    margin: 1.5rem auto;
+    padding: 0 1rem;
+  }
+  nav {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  nav button {
+    background-color: #d32f2f;
+    border: none;
+    color: white;
+    padding: 0.5rem 1.3rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  nav button.active, nav button:hover {
+    background-color: #b71c1c;
+  }
+  section {
+    display: none;
+  }
+  section.active {
+    display: block;
+  }
+  /* Dashboard */
+  .filter-status {
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .filter-status button {
+    background-color: #eee;
+    border: 1.5px solid #d32f2f;
+    color: #d32f2f;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+  }
+  .filter-status button.active {
+    background-color: #d32f2f;
+    color: white;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 0 7px rgb(0 0 0 / 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    color: #333;
+  }
+  th, td {
+    padding: 0.8rem 1rem;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+  }
+  th {
+    background-color: #d32f2f;
+    color: white;
+  }
+  tr:hover {
+    background-color: #f0f0f0;
+    cursor: pointer;
+  }
+  /* Modal */
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right:0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+  }
+  .modal.active {
+    display: flex;
+  }
+  .modal-content {
+    background: white;
+    padding: 1.3rem 2rem 2rem;
+    max-width: 600px;
+    width: 95%;
+    border-radius: 10px;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+    color: #333;
+  }
+  .modal-header {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 1rem;
+    color: #d32f2f;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .close-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #d32f2f;
+  }
+  /* Order Details */
+  .order-products {
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+    width: 100%;
+  }
+  .order-products th, .order-products td {
+    border: 1px solid #ddd;
+    padding: 0.4rem 0.7rem;
+    text-align: center;
+  }
+  .order-info {
+    margin-bottom: 1rem;
+  }
+  .map-placeholder {
+    width: 100%;
+    height: 200px;
+    background: #eee;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #999;
+    font-size: 1.1rem;
+    font-style: italic;
+  }
+  .order-actions button {
+    background-color: #d32f2f;
+    color: white;
+    border: none;
+    padding: 0.5rem 1.2rem;
+    font-size: 1rem;
+    border-radius: 6px;
+    margin: 0 0.3rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .order-actions button:hover {
+    background-color: #b71c1c;
+  }
+
+  /* Products Management */
+  .products-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: flex-start;
+  }
+  .product-card {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgb(0 0 0 / 0.1);
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+  }
+  .product-card img {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 8px 8px 0 0;
+  }
+  .product-info {
+    padding: 0.8rem 1rem;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .product-name {
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+  }
+  .product-category {
+    font-size: 0.85rem;
+    color: #777;
+    margin-bottom: 0.5rem;
+  }
+  .product-price {
+    font-weight: 700;
+    color: #d32f2f;
+    margin-bottom: 0.6rem;
+  }
+  .product-actions {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .product-actions button {
+    flex-grow: 1;
+    padding: 0.4rem 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  .btn-edit {
+    background-color: #42a5f5;
+    color: white;
+  }
+  .btn-edit:hover {
+    background-color: #1e88e5;
+  }
+  .btn-delete {
+    background-color: #ef5350;
+    color: white;
+  }
+  .btn-delete:hover {
+    background-color: #c62828;
+  }
+  .btn-add-product {
+    margin-bottom: 1rem;
+    background-color: #388e3c;
+    color: white;
+    padding: 0.7rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .btn-add-product:hover {
+    background-color: #2e7d32;
+  }
+
+  /* Product Form */
+  form label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+  }
+  form input[type="text"],
+  form input[type="number"],
+  form textarea,
+  form select {
+    width: 100%;
+    padding: 0.5rem 0.7rem;
+    margin-bottom: 1rem;
+    border: 1.3px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    resize: vertical;
+  }
+  form textarea {
+    min-height: 60px;
+  }
+  form input[type="file"] {
+    margin-bottom: 1rem;
+  }
+  form button.submit-btn {
+    background-color: #d32f2f;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.2rem;
+    font-size: 1.1rem;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  form button.submit-btn:hover {
+    background-color: #b71c1c;
+  }
+  .image-preview {
+    width: 100%;
+    max-height: 180px;
+    object-fit: contain;
+    margin-bottom: 1rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+
+  /* Responsive */
+  @media (max-width: 640px) {
+    .products-list {
+      justify-content: center;
+    }
+  }
+</style>
+</head>
+<body>
+<header>التطبيق الإداري - متجر البيتزا والمشويات</header>
+<nav>
+  <button id="btnDashboard" class="active" aria-label="الطلبات">الطلبات</button>
+  <button id="btnProducts" aria-label="إدارة المنتجات">إدارة المنتجات</button>
+</nav>
+<main>
+  <!-- شاشة استقبال الطلبات -->
+  <section id="dashboardSection" class="active" aria-label="لوحة الطلبات">
+    <div class="filter-status" role="group" aria-label="تصفية حالة الطلب">
+      <button class="filter-btn active" data-status="all" aria-pressed="true">الكل</button>
+      <button class="filter-btn" data-status="pending" aria-pressed="false">معلق</button>
+      <button class="filter-btn" data-status="in-progress" aria-pressed="false">قيد التجهيز</button>
+      <button class="filter-btn" data-status="delivered" aria-pressed="false">تم التوصيل</button>
+    </div>
+    <table aria-describedby="ordersTableDesc" role="table">
+      <caption id="ordersTableDesc" class="visually-hidden">قائمة الطلبات الجديدة</caption>
+      <thead>
+        <tr>
+          <th scope="col">رقم الطلب</th>
+          <th scope="col">اسم العميل</th>
+          <th scope="col">المبلغ الإجمالي</th>
+          <th scope="col">حالة الطلب</th>
+        </tr>
+      </thead>
+      <tbody id="ordersTableBody">
+        <!-- سيتم ملء الطلبات هنا -->
+      </tbody>
+    </table>
+  </section>
+
+  <!-- شاشة إدارة المنتجات -->
+  <section id="productsSection" aria-label="إدارة المنتجات">
+    <button class="btn-add-product" id="btnAddProduct" aria-haspopup="dialog" aria-controls="productFormModal">إضافة منتج جديد</button>
+    <div class="products-list" id="productsList">
+      <!-- سيتم ملء قائمة المنتجات هنا -->
+    </div>
+  </section>
+
+  <!-- مودال تفاصيل الطلب -->
+  <div class="modal" id="orderDetailsModal" role="dialog" aria-modal="true" aria-labelledby="orderDetailsTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="orderDetailsTitle">تفاصيل الطلب</h2>
+        <button class="close-btn" aria-label="إغلاق" id="closeOrderDetails">&times;</button>
+      </div>
+      <div id="orderDetailsContent">
+        <!-- تفاصيل الطلب يتم إدراجها هنا -->
+      </div>
+    </div>
+  </div>
+
+  <!-- مودال إضافة / تعديل منتج -->
+  <div class="modal" id="productFormModal" role="dialog" aria-modal="true" aria-labelledby="productFormTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="productFormTitle">إضافة منتج جديد</h2>
+        <button class="close-btn" aria-label="إغلاق" id="closeProductForm">&times;</button>
+      </div>
+      <form id="productForm" novalidate>
+        <label for="productName">اسم المنتج</label>
+        <input type="text" id="productName" name="productName" required minlength="2" placeholder="اسم المنتج" />
+        <label for="productDesc">الوصف</label>
+        <textarea id="productDesc" name="productDesc" placeholder="وصف المنتج"></textarea>
+        <label for="productPrice">السعر</label>
+        <input type="number" id="productPrice" name="productPrice" required min="0" step="0.01" placeholder="السعر" />
+        <label for="productCategory">التصنيف</label>
+        <select id="productCategory" name="productCategory" required>
+          <option value="">اختر التصنيف</option>
+          <option value="بيتزا">بيتزا</option>
+          <option value="مأكولات سريعة">مأكولات سريعة</option>
+          <option value="مشاوي">مشاوي</option>
+          <option value="منتجات أخرى">منتجات أخرى</option>
+        </select>
+        <label for="productImage">صورة المنتج</label>
+        <input type="file" id="productImage" name="productImage" accept="image/*" />
+        <img class="image-preview" id="imagePreview" alt="معاينة صورة المنتج" src="" style="display:none;" />
+        <button type="submit" class="submit-btn">حفظ المنتج</button>
+      </form>
+    </div>
+  </div>
+</main>
+
+<script>
+  // بيانات تجريبية للطلبات
+  let orders = [
+    {
+      id: 101,
+      customerName: "أحمد محمد",
+      totalAmount: 120.50,
+      status: "pending",
+      products: [
+        { name: "بيتزا مارغريتا", quantity: 1, price: 50 },
+        { name: "بطاطا مقلية", quantity: 2, price: 35 },
+      ],
+      phone: "0501234567",
+      address: "شارع الملك فيصل، الرياض",
+      lat: 24.7136,
+      lng: 46.6753,
+    },
+    {
+      id: 102,
+      customerName: "فاطمة علي",
+      totalAmount: 200.00,
+      status: "in-progress",
+      products: [
+        { name: "مشاوي مشكلة", quantity: 1, price: 200 },
+      ],
+      phone: "0559876543",
+      address: "حي النخيل، جدة",
+      lat: 21.4858,
+      lng: 39.1925,
+    },
+    {
+      id: 103,
+      customerName: "سعيد عبد الله",
+      totalAmount: 75.75,
+      status: "delivered",
+      products: [
+        { name: "برجر دجاج", quantity: 1, price: 40 },
+        { name: "مشروب غازي", quantity: 1, price: 35.75 },
+      ],
+      phone: "0534567890",
+      address: "شارع التحلية، الخبر",
+      lat: 26.2854,
+      lng: 50.2078,
+    },
+  ];
+
+  // بيانات تجريبية للمنتجات
+  let products = [
+    {
+      id: "p1",
+      name: "بيتزا مارغريتا",
+      description: "بيتزا كلاسيكية بالجبنة والصلصة الطازجة.",
+      price: 50,
+      category: "بيتزا",
+      image: "https://images.unsplash.com/photo-1601924578289-6e90718ec7a2?auto=format&fit=crop&w=400&q=80",
+    },
+    {
+      id: "p2",
+      name: "برجر دجاج",
+      description: "برجر دجاج مشوي مع صوص خاص.",
+      price: 40,
+      category: "مأكولات سريعة",
+      image: "https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=400&q=80",
+    },
+    {
+      id: "p3",
+      name: "مشاوي مشكلة",
+      description: "كباب، شيش طاووق، لحم مشوي مع تتبيلة خاصة.",
+      price: 200,
+      category: "مشاوي",
+      image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=400&q=80",
+    },
+  ];
+
+  // الوظائف الأساسية
+
+  const btnDashboard = document.getElementById("btnDashboard");
+  const btnProducts = document.getElementById("btnProducts");
+  const dashboardSection = document.getElementById("dashboardSection");
+  const productsSection = document.getElementById("productsSection");
+  const ordersTableBody = document.getElementById("ordersTableBody");
+  const filterButtons = document.querySelectorAll(".filter-btn");
+
+  const orderDetailsModal = document.getElementById("orderDetailsModal");
+  const orderDetailsContent = document.getElementById("orderDetailsContent");
+  const closeOrderDetails = document.getElementById("closeOrderDetails");
+
+  const productsList = document.getElementById("productsList");
+  const btnAddProduct = document.getElementById("btnAddProduct");
+  const productFormModal = document.getElementById("productFormModal");
+  const productFormTitle = document.getElementById("productFormTitle");
+  const closeProductForm = document.getElementById("closeProductForm");
+  const productForm = document.getElementById("productForm");
+  const productNameInput = document.getElementById("productName");
+  const productDescInput = document.getElementById("productDesc");
+  const productPriceInput = document.getElementById("productPrice");
+  const productCategorySelect = document.getElementById("productCategory");
+  const productImageInput = document.getElementById("productImage");
+  const imagePreview = document.getElementById("imagePreview");
+
+  let currentEditProductId = null;
+
+  function switchSection(section) {
+    if (section === "dashboard") {
+      dashboardSection.classList.add("active");
+      productsSection.classList.remove("active");
+      btnDashboard.classList.add("active");
+      btnProducts.classList.remove("active");
+    } else {
+      dashboardSection.classList.remove("active");
+      productsSection.classList.add("active");
+      btnDashboard.classList.remove("active");
+      btnProducts.classList.add("active");
+    }
+  }
+
+  btnDashboard.addEventListener("click", () => switchSection("dashboard"));
+  btnProducts.addEventListener("click", () => switchSection("products"));
+
+  function renderOrders(filter="all") {
+    ordersTableBody.innerHTML = "";
+    const filteredOrders = filter === "all" ? orders : orders.filter(o => o.status === filter);
+    if (filteredOrders.length === 0) {
+      ordersTableBody.innerHTML = `<tr><td colspan="4" style="padding:1rem; color:#777;">لا توجد طلبات فى هذه الحالة.</td></tr>`;
+      return;
+    }
+    filteredOrders.forEach(order => {
+      const tr = document.createElement("tr");
+      tr.tabIndex = 0;
+      tr.setAttribute("role", "row");
+      tr.dataset.orderId = order.id;
+      tr.innerHTML = `
+        <td>${order.id}</td>
+        <td>${order.customerName}</td>
+        <td>${order.totalAmount.toFixed(2)} ر.س</td>
+        <td>${statusText(order.status)}</td>
+      `;
+      tr.addEventListener("click", () => openOrderDetails(order.id));
+      tr.addEventListener("keydown", e => {
+        if(e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          openOrderDetails(order.id);
+        }
+      });
+      ordersTableBody.appendChild(tr);
+    });
+  }
+
+  function statusText(status) {
+    switch(status) {
+      case "pending": return "معلق";
+      case "in-progress": return "قيد التجهيز";
+      case "delivered": return "تم التوصيل";
+      default: return status;
+    }
+  }
+
+  filterButtons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      filterButtons.forEach(b => {
+        b.classList.remove("active");
+        b.setAttribute("aria-pressed", "false");
+      });
+      btn.classList.add("active");
+      btn.setAttribute("aria-pressed", "true");
+      renderOrders(btn.dataset.status);
+    });
+  });
+
+  function openOrderDetails(orderId) {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+    orderDetailsContent.innerHTML = `
+      <div class="order-info"><strong>اسم العميل:</strong> ${order.customerName}</div>
+      <div class="order-info"><strong>رقم الهاتف:</strong> ${order.phone}</div>
+      <div class="order-info"><strong>العنوان:</strong> ${order.address}</div>
+      <div class="map-placeholder" aria-label="الخريطة المصغرة لموقع التوصيل">
+        خريطة الموقع (${order.lat.toFixed(3)}, ${order.lng.toFixed(3)})
+      </div>
+      <table class="order-products" aria-label="قائمة المنتجات في الطلب">
+        <thead>
+          <tr><th>المنتج</th><th>الكمية</th><th>السعر (ر.س)</th></tr>
+        </thead>
+        <tbody>
+          ${order.products.map(p => `
+            <tr>
+              <td>${p.name}</td>
+              <td>${p.quantity}</td>
+              <td>${(p.price * p.quantity).toFixed(2)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      <div class="order-actions">
+        <button onclick="changeOrderStatus(${order.id}, 'pending')">معلق</button>
+        <button onclick="changeOrderStatus(${order.id}, 'in-progress')">قيد التجهيز</button>
+        <button onclick="changeOrderStatus(${order.id}, 'delivered')">تم التوصيل</button>
+      </div>
+    `;
+    orderDetailsModal.classList.add("active");
+    orderDetailsModal.querySelector(".close-btn").focus();
+  }
+
+  closeOrderDetails.addEventListener("click", () => {
+    orderDetailsModal.classList.remove("active");
+  });
+
+  function changeOrderStatus(orderId, newStatus) {
+    const order = orders.find(o => o.id === orderId);
+    if (!order) return;
+    order.status = newStatus;
+    renderOrders(document.querySelector(".filter-btn.active").dataset.status);
+    orderDetailsModal.classList.remove("active");
+  }
+
+  function renderProducts() {
+    productsList.innerHTML = "";
+    if (products.length === 0) {
+      productsList.innerHTML = "<p style='color:#777; font-weight:600;'>لا توجد منتجات.</p>";
+      return;
+    }
+    products.forEach(product => {
+      const card = document.createElement("article");
+      card.classList.add("product-card");
+      card.innerHTML = `
+        <img src="${product.image}" alt="صورة ${product.name}" />
+        <div class="product-info">
+          <div class="product-name">${product.name}</div>
+          <div class="product-category">${product.category}</div>
+          <div class="product-price">${product.price.toFixed(2)} ر.س</div>
+          <div class="product-actions">
+            <button class="btn-edit" aria-label="تعديل المنتج ${product.name}">تعديل</button>
+            <button class="btn-delete" aria-label="حذف المنتج ${product.name}">حذف</button>
+          </div>
+        </div>
+      `;
+      const btnEdit = card.querySelector(".btn-edit");
+      btnEdit.addEventListener("click", () => openProductForm(product.id));
+      const btnDelete = card.querySelector(".btn-delete");
+      btnDelete.addEventListener("click", () => deleteProduct(product.id));
+      productsList.appendChild(card);
+    });
+  }
+
+  function openProductForm(productId = null) {
+    currentEditProductId = productId;
+    productFormTitle.textContent = productId ? "تعديل المنتج" : "إضافة منتج جديد";
+    if (productId) {
+      const product = products.find(p => p.id === productId);
+      if (!product) return;
+      productNameInput.value = product.name;
+      productDescInput.value = product.description || "";
+      productPriceInput.value = product.price;
+      productCategorySelect.value = product.category;
+      imagePreview.src = product.image || "";
+      imagePreview.style.display = product.image ? "block" : "none";
+      productImageInput.value = "";
+    } else {
+      productForm.reset();
+      imagePreview.style.display = "none";
+    }
+    productFormModal.classList.add("active");
+    productNameInput.focus();
+  }
+
+  closeProductForm.addEventListener("click", () => {
+    productFormModal.classList.remove("active");
+  });
+
+  function deleteProduct(productId) {
+    if (confirm("هل أنت متأكد من حذف هذا المنتج؟")) {
+      products = products.filter(p => p.id !== productId);
+      renderProducts();
+    }
+  }
+
+  productImageInput.addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = e => {
+        imagePreview.src = e.target.result;
+        imagePreview.style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    } else {
+      imagePreview.src = "";
+      imagePreview.style.display = "none";
+    }
+  });
+
+  productForm.addEventListener("submit", e => {
+    e.preventDefault();
+    if (!productForm.checkValidity()) {
+      productForm.reportValidity();
+      return;
+    }
+    const name = productNameInput.value.trim();
+    const desc = productDescInput.value.trim();
+    const price = parseFloat(productPriceInput.value);
+    const category = productCategorySelect.value;
+    let image = imagePreview.src || "";
+
+    if (currentEditProductId) {
+      const product = products.find(p => p.id === currentEditProductId);
+      if (product) {
+        product.name = name;
+        product.description = desc;
+        product.price = price;
+        product.category = category;
+        if (image.startsWith("data:")) {
+          product.image = image;
+        }
+      }
+    } else {
+      const newProduct = {
+        id: "p" + Date.now(),
+        name,
+        description: desc,
+        price,
+        category,
+        image: image.startsWith("data:") ? image : "",
+      };
+      products.push(newProduct);
+    }
+
+    productFormModal.classList.remove("active");
+    renderProducts();
+  });
+
+  btnAddProduct.addEventListener("click", () => openProductForm());
+
+  // إضافة دالة استقبال الطلب (API وهمي)
+  function receiveOrder(orderData) {
+    console.log("تم استلام الطلب:", orderData);
+    orders.push({
+      id: orders.length ? Math.max(...orders.map(o=>o.id)) + 1 : 1,
+      customerName: orderData.customerName,
+      totalAmount: orderData.totalPrice,
+      status: "pending",
+      products: orderData.products,
+      phone: orderData.customerPhone,
+      address: `Lat: ${orderData.location.lat}, Lng: ${orderData.location.lng}`,
+      lat: orderData.location.lat,
+      lng: orderData.location.lng,
+    });
+    alert("تم استلام الطلب بنجاح!");
+    renderOrders();
+  }
+
+  // بدء التطبيق
+  renderOrders();
+  renderProducts();
+
+</script>
+</body>
+</html>
+
